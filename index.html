@@ -1,0 +1,163 @@
+<script>
+var sectionSize = 50;
+var gridSize = 10;
+var guesses = 20;
+
+var run = function () {
+  document.getElementById('guesses').children[0].innerText = guesses;
+  var container = document.getElementById('container');
+  container.style.width = (sectionSize * (gridSize + 1) + (2 * (gridSize + 1))) + 'px';
+  container.style.height = (sectionSize * (gridSize + 1) + (2 * (gridSize + 1))) + 'px';
+
+  for (var rowIndex = 1; rowIndex <= gridSize; ++rowIndex) {
+    for (var colIndex = 1; colIndex <= gridSize; ++colIndex) {
+      var section = document.createElement('div');
+      section.className = rowIndex + '-' + colIndex;
+      section.style.width = sectionSize + 'px';
+      section.style.height = sectionSize + 'px';
+      var randomNumber = Math.round(Math.random() * 9);
+      section.setAttribute('data-row', rowIndex);
+      section.setAttribute('data-col', colIndex);
+      section.setAttribute('data-answer', randomNumber);
+      section.addEventListener('click', incrementSection);
+      section.addEventListener('contextmenu', decrementSection);
+      var p = document.createElement('p');
+      p.innerText = 0;
+      p.style.lineHeight = sectionSize + 'px';
+      section.appendChild(p);
+      container.appendChild(section);
+
+      // Add indicators to the end of rows
+      if (colIndex === gridSize) {
+        var indicator = document.createElement('div');
+        indicator.className = 'indicator rowIndicator' + rowIndex;
+        indicator.style.width = sectionSize + 'px';
+        indicator.style.height = sectionSize + 'px';
+
+        var p = document.createElement('p');
+        p.innerText = '0'
+        p.style.lineHeight = sectionSize + 'px';
+        indicator.appendChild(p);
+        container.appendChild(indicator);
+      }
+    }
+
+    // Add indicators to the end of rows
+    if (rowIndex === gridSize) {
+      for (var i = 1; i <= gridSize; ++i) {
+        var indicator = document.createElement('div');
+        indicator.className = 'indicator colIndicator' + i;
+        indicator.style.width = sectionSize + 'px';
+        indicator.style.height = sectionSize + 'px';
+
+        var p = document.createElement('p');
+        p.innerText = '0'
+        p.style.lineHeight = sectionSize + 'px';
+        indicator.appendChild(p);
+        container.appendChild(indicator);
+      }
+    }
+
+  }
+}
+
+var incrementSection = function () {
+  var p = this.children[0];
+  var number = parseInt(p.innerText, 10) || 0;
+  var replace = number;
+
+  if (number !== 9) {
+    replace += 1;
+  } else {
+    replace = 0;
+  }
+
+  p.innerText = replace;
+}
+
+var decrementSection = function (e) {
+  e.preventDefault();
+
+  var p = this.children[0];
+  var number = parseInt(p.innerText, 10) || 0;
+  var replace = number;
+
+  if (number !== 0) {
+    replace -= 1;
+  } else {
+    replace = 9;
+  }
+
+  p.innerText = replace;
+}
+
+var checkAnswers = function () {
+  if (guesses === 0) {
+    gameOver();
+  }
+  --guesses;
+  document.getElementById('guesses').children[0].innerText = guesses;
+
+  var container = document.getElementById('container');
+  var divs = container.children;
+  var correct = {};
+
+  for (var rowIndex = 1; rowIndex <= gridSize; ++rowIndex) {
+    for (var colIndex = 1; colIndex <= gridSize; ++colIndex) {
+      correct['row' + rowIndex] = 0;
+      correct['col' + colIndex] = 0;
+    }
+  }
+
+  for (var i = 0; i < divs.length; ++i) {
+    var div = divs[i];
+    if (div.className.indexOf('indicator') != -1) {
+      continue;
+    }
+
+    var guess = parseInt(div.children[0].innerText, 10);
+    var answer = parseInt(div.getAttribute('data-answer'), 10);
+    var row = div.getAttribute('data-row');
+    var col = div.getAttribute('data-col');
+
+    if (guess === answer) {
+      correct['row' + row]++;
+      correct['col' + col]++;
+    }
+
+    var indicator = document.getElementsByClassName('rowIndicator' + row)[0];
+    indicator.children[0].innerText = correct['row' + row];
+
+    var indicator = document.getElementsByClassName('colIndicator' + col)[0];
+    indicator.children[0].innerText = correct['col' + col];
+
+  }
+}
+
+var gameOver = function () {
+  alert('Game over');
+  window.location.reload();
+}
+</script>
+<body onload="run()">
+  <div id="guesses"><span></span> Guesses</div>
+  <div id="container"></div>
+  <button onClick="checkAnswers()">Check</button>
+</body>
+
+<style>
+#container > div {
+  text-align: center;
+  display: inline-block;
+  cursor: pointer;
+  -webkit-user-select: none;
+}
+
+#container > div:not(.indicator) {
+  border: 1px solid black;
+}
+
+#container > div > p {
+  margin: 0 auto;
+}
+</style>
